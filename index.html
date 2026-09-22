@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video & Prompt Download</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    display: flex; justify-content: center; align-items: center;
+    padding: 20px; color: #fff;
+  }
+
+  .container {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px; padding: 30px 25px;
+    max-width: 560px; width: 100%;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 22px; margin-bottom: 8px;
+    background: linear-gradient(90deg, #ff6b6b, #feca57);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .subtitle { font-size: 13px; color: #b0b0b0; margin-bottom: 20px; }
+
+  .insta-follow {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    color: #fff; text-decoration: none; padding: 12px 20px; border-radius: 50px;
+    font-weight: 600; font-size: 15px; margin-bottom: 22px;
+    box-shadow: 0 8px 20px rgba(220, 39, 67, 0.4);
+    transition: transform 0.25s, box-shadow 0.25s;
+  }
+  .insta-follow:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 28px rgba(220, 39, 67, 0.6); }
+  .insta-follow svg { width: 22px; height: 22px; fill: #fff; }
+
+  /* 🎬 16:9 VIDEO WRAPPER */
+  .video-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    margin-bottom: 18px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  }
+
+  .video-wrapper video {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: contain;
+    background: #000;
+  }
+
+  .prompt-box {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px dashed #4ecca3; border-radius: 12px;
+    padding: 14px; text-align: left; margin-bottom: 18px;
+  }
+
+  .prompt-label {
+    font-size: 12px; color: #4ecca3; font-weight: bold;
+    margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+  }
+
+  .prompt-text {
+    font-size: 13px; color: #e0e0e0; line-height: 1.5;
+    max-height: 140px; overflow-y: auto;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .prompt-text::-webkit-scrollbar { width: 5px; }
+  .prompt-text::-webkit-scrollbar-thumb { background: #4ecca3; border-radius: 5px; }
+
+  .btn-group { display: flex; gap: 12px; }
+
+  button {
+    flex: 1; padding: 13px 10px; border: none; border-radius: 12px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    transition: transform 0.2s, box-shadow 0.2s; font-family: inherit;
+  }
+
+  .btn-download { background: linear-gradient(135deg, #4ecca3, #38a3a5); color: #fff; }
+  .btn-copy { background: linear-gradient(135deg, #feca57, #ff9f43); color: #1a1a2e; }
+
+  button:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+  button:active { transform: scale(0.97); }
+  button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  /* 📖 GUIDE SECTION */
+  .guide {
+    margin-top: 25px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    text-align: left;
+  }
+
+  .guide-title {
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 18px;
+    background: linear-gradient(90deg, #4ecca3, #feca57);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 0.5px;
+  }
+
+  .step {
+    display: flex;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 3px solid #4ecca3;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    transition: transform 0.2s, background 0.2s;
+  }
+
+  .step:hover {
+    transform: translateX(4px);
+    background: rgba(78, 204, 163, 0.12);
+  }
+
+  .step:last-child {
+    margin-bottom: 0;
+  }
+
+  .step-num {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4ecca3, #38a3a5);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 4px 10px rgba(78, 204, 163, 0.4);
+  }
+
+  .step-text {
+    font-size: 13px;
+    color: #d8d8d8;
+    line-height: 1.5;
+    padding-top: 4px;
+  }
+
+  .step-text b {
+    color: #feca57;
+    font-weight: 600;
+  }
+
+  .step-highlight {
+    color: #4ecca3;
+    font-weight: 600;
+  }
+
+  .footer { margin-top: 20px; font-size: 11px; color: #888; }
+
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: #fff; border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #4ecca3; color: #000; padding: 12px 24px;
+    border-radius: 30px; font-weight: bold; font-size: 14px;
+    opacity: 0; transition: all 0.4s ease; z-index: 100;
+    text-align: center; max-width: 90%;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.error { background: #ff6b6b; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🎬 Video + Prompt</h1>
+  <p class="subtitle">Video download करें और Prompt copy करें</p>
+
+  <!-- Instagram Follow Button -->
+  <a class="insta-follow" href="https://instagram.com/YOUR_INSTAGRAM_ID" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+    </svg>
+    Follow on Instagram
+  </a>
+
+  <!-- 🎬 16:9 Local Video Player -->
+  <div class="video-wrapper">
+    <video id="myVideo" controls playsinline preload="metadata">
+      <source src="video.mp4" type="video/mp4">
+      आपका browser video support नहीं करता।
+    </video>
+  </div>
+
+  <!-- Prompt -->
+  <div class="prompt-box">
+    <div class="prompt-label">📝 PROMPT</div>
+    <div class="prompt-text" id="promptText">Generate a motion-controlled video using the uploaded image as the character reference and the uploaded video as the style and motion reference.
+Preserve the character's exact identity, appearance, and key visual details while accurately replicating the reference video's motion, style, camera movement, and overall visual dynamics.</div>
+  </div>
+
+  <!-- Buttons -->
+  <div class="btn-group">
+    <button class="btn-download" id="downloadBtn" onclick="downloadVideo()">
+      <span id="downloadIcon">⬇️</span>
+      <span id="downloadLabel">Download</span>
+    </button>
+    <button class="btn-copy" id="copyBtn" onclick="copyPrompt()">
+      <span id="copyIcon">📋</span>
+      <span id="copyLabel">Copy Prompt</span>
+    </button>
+  </div>
+
+  <!-- 📖 STEP-BY-STEP GUIDE -->
+  <div class="guide">
+    <div class="guide-title">✨ ऐसे बनाएँ अपनी Video ✨</div>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text">
+        सबसे पहले <b>Download</b> बटन दबाकर ये video डाउनलोड करें।
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text">
+        फिर <b>Copy Prompt</b> बटन दबाकर prompt कॉपी करें।
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text">
+        अब <span class="step-highlight">Google Flow</span> या <span class="step-highlight">Gemini</span> में जाएँ और अपनी <b>फ़ोटो</b> और ये <b>video</b> upload करें — साथ में ये prompt paste करें।
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-text">
+        बस! आपकी <b>video बन जाएगी</b> 🎉
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Follow करने के लिए धन्यवाद ❤️</div>
+</div>
+
+<div class="toast" id="toast">✅ Prompt Copy हो गया!</div>
+
+<script>
+  // ========== CONFIG ==========
+  const VIDEO_FILE = 'video.mp4';
+  const DOWNLOAD_NAME = 'video.mp4';
+  // ============================
+
+  // ⬇️ VIDEO DOWNLOAD
+  function downloadVideo() {
+    const btn = document.getElementById('downloadBtn');
+    const icon = document.getElementById('downloadIcon');
+    const label = document.getElementById('downloadLabel');
+
+    btn.disabled = true;
+    icon.innerHTML = '<span class="spinner"></span>';
+    label.textContent = 'Downloading...';
+
+    const a = document.createElement('a');
+    a.href = VIDEO_FILE;
+    a.download = DOWNLOAD_NAME;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    setTimeout(() => {
+      btn.disabled = false;
+      icon.textContent = '✅';
+      label.textContent = 'Downloaded!';
+      showToast('✅ Video Download हो गया!');
+
+      setTimeout(() => {
+        icon.textContent = '⬇️';
+        label.textContent = 'Download';
+      }, 1500);
+    }, 600);
+  }
+
+  // 📋 PROMPT COPY
+  async function copyPrompt() {
+    const text = document.getElementById('promptText').innerText.trim();
+    const icon = document.getElementById('copyIcon');
+    const label = document.getElementById('copyLabel');
+
+    if (!text) {
+      showToast('❌ Prompt खाली है!', true);
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('✅ Prompt Copy हो गया!');
+    } catch (err) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (ok) showToast('✅ Prompt Copy हो गया!');
+        else throw new Error('failed');
+      } catch (e) {
+        showToast('❌ Copy नहीं हुआ, manually select करें', true);
+        return;
+      }
+    }
+
+    icon.textContent = '✅';
+    label.textContent = 'Copied!';
+    setTimeout(() => {
+      icon.textContent = '📋';
+      label.textContent = 'Copy Prompt';
+    }, 1500);
+  }
+
+  // TOAST
+  let toastTimer;
+  function showToast(message, isError = false) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.toggle('error', isError);
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+</script>
+
+</body>
+</html>
